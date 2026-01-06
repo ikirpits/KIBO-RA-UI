@@ -93,10 +93,22 @@ def generate_heatmap_base64(results_data):
         print(f"Error generating heatmap: {e}")
         return None
 
-# Initialize the auditor (load models once at startup)
-print("Initializing KIBO Requirements Auditor...")
-auditor = KIBORequirementsAuditor(RISK_PROTOTYPES)
-print("Auditor ready!")
+# Initialize auditor lazily (load models on first use, not at startup)
+# This prevents timeout issues during Cloud Run startup
+_auditor = None
+
+def get_auditor():
+    """Get auditor instance, initializing if needed."""
+    global _auditor
+    if _auditor is None:
+        print("Initializing KIBO Requirements Auditor...")
+        try:
+            _auditor = KIBORequirementsAuditor(RISK_PROTOTYPES)
+            print("Auditor ready!")
+        except Exception as e:
+            print(f"Error initializing auditor: {e}")
+            raise
+    return _auditor
 
 @app.route('/')
 def index():
@@ -134,6 +146,8 @@ def assess():
         return jsonify({'error': sanitize_error}), 400
     
     try:
+        # Get auditor (lazy initialization)
+        auditor = get_auditor()
         # Assess the requirement (use sanitized text)
         result = auditor.assess_requirement(sanitized_text)
         
@@ -198,6 +212,8 @@ def assess_batch():
         sanitized_requirements.append(sanitized)
     
     try:
+        # Get auditor (lazy initialization)
+        auditor = get_auditor()
         # Assess all requirements (use sanitized requirements)
         results = auditor.assess_batch(sanitized_requirements)
         
@@ -219,7 +235,7 @@ def assess_batch():
                 'risk_levels': {k: get_risk_level(v) for k, v in result.scores.items()}
             }
             
-            # Add sprint readiness
+            # Add sprint readiness (auditor already initialized above)
             gate = auditor.assess_for_sprint_readiness(result.requirement)
             req_result['sprint_ready'] = bool(gate['sprint_ready'])  # Convert numpy bool to Python bool
             req_result['gate_decision'] = str(gate['gate_decision'])
@@ -351,7 +367,19 @@ def export_excel():
 @app.route('/health')
 def health():
     """Health check endpoint (no security middleware to allow monitoring)."""
-    return jsonify({'status': 'healthy', 'auditor_ready': True})
+    # Check if auditor can be initialized (but don't block if it fails)
+    auditor_ready = False
+    try:
+        auditor = get_auditor()
+        auditor_ready = True
+    except Exception as e:
+        print(f"Auditor not ready: {e}")
+    
+    return jsonify({
+        'status': 'healthy', 
+        'auditor_ready': auditor_ready,
+        'message': 'Service is running' if auditor_ready else 'Service running, models loading...'
+    })
 
 # Error handlers
 @app.errorhandler(413)
