@@ -31,7 +31,7 @@ app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 # Add security headers to all responses
 @app.after_request
 def add_security_headers(response):
-    """Add security headers to all responses.""" 
+    """Add security headers to all responses."""
     return setup_security_headers(response)
 
 # Cleanup rate limits on shutdown
@@ -254,7 +254,7 @@ def assess_batch():
     
     except Exception as e:
         log_security_event('batch_assessment_error', {'error': str(e), 'endpoint': '/assess_batch'})
-        # Don't expose internal error details 
+        # Don't expose internal error details
         return jsonify({'error': 'Batch assessment failed. Please check your input and try again.'}), 500
 
 @app.route('/export_excel', methods=['POST'])
@@ -419,6 +419,4 @@ if __name__ == '__main__':
         print("Production mode - ensure proper WSGI server is configured")
     print("\nPress Ctrl+C to stop the server.\n")
     app.run(debug=debug, host='0.0.0.0', port=port)
-
-
 
