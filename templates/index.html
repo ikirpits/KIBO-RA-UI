@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIBO Requirements Auditor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% if recaptcha_site_key %}
+    <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
+    {% endif %}
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>KIBO Requirements Auditor</h1>
+            <p class="subtitle">Automated governance enforcement for KIBO hybrid SDLC</p>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2>Enter Requirements</h2>
+                <div class="input-mode-toggle">
+                    <button class="toggle-btn active" id="singleMode">Single Requirement</button>
+                    <button class="toggle-btn" id="batchMode">Batch Assessment</button>
+                </div>
+
+                <!-- Single Requirement Mode -->
+                <div id="singleInput" class="input-panel active">
+                    <form id="singleForm">
+                        <!-- Honeypot field (hidden from users, bots will fill it) -->
+                        <input type="text" name="website" id="website" style="display: none;" tabindex="-1" autocomplete="off">
+                        
+                        <div class="form-group">
+                            <label for="requirement">Requirement Text:</label>
+                            <textarea 
+                                id="requirement" 
+                                name="requirement" 
+                                rows="4" 
+                                placeholder="Enter your requirement here, e.g., 'The user selects Bundles & Services and the system loads the Add TV menu'"
+                                required
+                            ></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Assess Requirement</button>
+                    </form>
+                </div>
+
+                <!-- Batch Mode -->
+                <div id="batchInput" class="input-panel">
+                    <form id="batchForm">
+                        <!-- Honeypot field (hidden from users, bots will fill it) -->
+                        <input type="text" name="website" id="website-batch" style="display: none;" tabindex="-1" autocomplete="off">
+                        
+                        <div class="form-group">
+                            <label for="requirements">Requirements (one per line or CSV file):</label>
+                            <textarea 
+                                id="requirements" 
+                                name="requirements" 
+                                rows="8" 
+                                placeholder="Enter multiple requirements, one per line:&#10;&#10;The user selects Bundles & Services and the system loads the Add TV menu&#10;The user selects AddTv and the system loads the Plan Selection screen&#10;..."
+                            ></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="csvFile">Or upload CSV file:</label>
+                            <input type="file" id="csvFile" accept=".csv" style="padding: 8px; border: 2px solid #ddd; border-radius: 6px; width: 100%;">
+                            <small style="color: #666; display: block; margin-top: 5px;">CSV format: first column should contain requirement text</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Assess All Requirements</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Assessing requirements... This may take a few moments.</p>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results" class="results hidden">
+                <h2>Assessment Results</h2>
+                <div id="resultsContent"></div>
+            </div>
+
+            <!-- Error Section -->
+            <div id="error" class="error hidden"></div>
+        </div>
+
+        <footer>
+            <p>KIBO Requirements Auditor - Risk Assessment & Governance Enforcement</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
