@@ -31,7 +31,7 @@ app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 # Add security headers to all responses
 @app.after_request
 def add_security_headers(response):
-    """Add security headers to all responses."""
+    """Add security headers to all responses.""" 
     return setup_security_headers(response)
 
 # Cleanup rate limits on shutdown
@@ -419,5 +419,6 @@ if __name__ == '__main__':
         print("Production mode - ensure proper WSGI server is configured")
     print("\nPress Ctrl+C to stop the server.\n")
     app.run(debug=debug, host='0.0.0.0', port=port)
+
 
 
